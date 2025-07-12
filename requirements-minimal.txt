@@ -1,0 +1,11 @@
+# Minimal Core Dependencies for Basic Functionality
+supabase>=1.0.0
+sentence-transformers>=2.2.0
+pandas>=1.5.0
+numpy>=1.24.0
+python-dotenv>=1.0.0
+
+# Essential Document Processing
+python-docx>=0.8.11          # Word documents
+pdfplumber>=0.9.0            # PDF processing
+beautifulsoup4>=4.12.0       # HTML parsing
