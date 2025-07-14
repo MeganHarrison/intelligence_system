@@ -439,6 +439,12 @@ async def lifespan(app: FastAPI):
     print("🚀 Initializing intelligence components...")
     
     try:
+        # Disable ML components for production deployment
+        production_mode = os.getenv('NODE_ENV') == 'production'
+        if production_mode:
+            print("🚀 Running in production mode - ML components disabled")
+            return
+            
         # Import intelligence agent components
         from config.settings import get_settings
         from core.extractors import SupabaseDocumentExtractor

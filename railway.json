@@ -5,7 +5,7 @@
     "dockerfilePath": "Dockerfile.backend"
   },
   "deploy": {
-    "startCommand": "cd python-backend && uvicorn api_server:app --host 0.0.0.0 --port $PORT",
+    "startCommand": "cd python-backend && NODE_ENV=production uvicorn api_server:app --host 0.0.0.0 --port $PORT",
     "healthcheckPath": "/api/health",
     "healthcheckTimeout": 100,
     "restartPolicyType": "ON_FAILURE",
