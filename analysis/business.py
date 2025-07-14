@@ -1,6 +1,6 @@
 # business_strategic_system.py - Your Real Business Intelligence Command Center
 import asyncio
-from ..core.extractors import SupabaseDocumentExtractor
+from core.extractors import SupabaseDocumentExtractor
 from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv

@@ -12,8 +12,8 @@ from supabase import create_client
 import logging
 
 # Import your existing components
-from ..core.extractors import SupabaseDocumentExtractor
-from .projects import ContextualProjectIntelligence, EnhancedCEOBriefing
+from core.extractors import SupabaseDocumentExtractor
+from analysis.projects import ContextualProjectIntelligence, EnhancedCEOBriefing
 
 # Configure logging
 logging.basicConfig(

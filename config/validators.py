@@ -6,7 +6,7 @@ Validation functions for configuration settings
 import re
 import os
 from pathlib import Path
-from typing import Any, List, Tuple, Optional
+from typing import Any, Dict, List, Tuple, Optional
 from urllib.parse import urlparse
 
 

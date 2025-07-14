@@ -5,6 +5,12 @@ pandas>=1.5.0
 numpy>=1.24.0
 python-dotenv>=1.0.0
 
+# FastAPI Backend Dependencies
+fastapi>=0.104.0             # Web framework
+uvicorn[standard]>=0.24.0    # ASGI server
+websockets>=12.0             # WebSocket support
+pydantic>=2.5.0              # Data validation
+
 # Document Processing Dependencies
 python-docx>=0.8.11          # Word documents (.docx)
 openpyxl>=3.1.0              # Excel files (.xlsx)
