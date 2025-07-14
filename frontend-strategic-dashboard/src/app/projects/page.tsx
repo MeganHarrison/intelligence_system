@@ -23,7 +23,7 @@ export default function ProjectsPage() {
         params.append('sort_by', sortBy);
         params.append('limit', '50');
         
-        const response = await fetch(`http://localhost:8000/api/projects?${params}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/projects?${params}`);
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);

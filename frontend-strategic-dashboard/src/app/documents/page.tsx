@@ -33,7 +33,7 @@ export default function DocumentsPage() {
         params.append('limit', '100');
         if (searchTerm) params.append('search', searchTerm);
         
-        const response = await fetch(`http://localhost:8000/api/documents?${params}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/documents?${params}`);
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
