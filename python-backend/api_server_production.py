@@ -124,40 +124,92 @@ async def initialize_components():
     
     print("🚀 Initializing components in production mode...")
     
-    # Only try to initialize fallback database connection
-    try:
-        # Try to initialize a basic database connection
-        from scripts.database_direct_connection import DirectDatabaseConnection
-        fallback_db = DirectDatabaseConnection()
-        await fallback_db.initialize()
-        print("✅ Database connection initialized")
-    except Exception as e:
-        print(f"⚠️ Database connection error: {e}")
+    # Only try to initialize fallback database connection if not in Railway
+    railway_env = os.getenv('RAILWAY_ENVIRONMENT')
+    if railway_env:
+        print(f"🚂 Running on Railway environment: {railway_env}")
+        print("📡 Skipping advanced components initialization for Railway")
         fallback_db = None
+    else:
+        try:
+            # Try to initialize a basic database connection
+            from scripts.database_direct_connection import DirectDatabaseConnection
+            fallback_db = DirectDatabaseConnection()
+            await fallback_db.initialize()
+            print("✅ Database connection initialized")
+        except Exception as e:
+            print(f"⚠️ Database connection error: {e}")
+            fallback_db = None
     
     print("✅ Production initialization complete")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    await initialize_components()
+    try:
+        await initialize_components()
+        print("🎉 FastAPI app started successfully")
+    except Exception as e:
+        print(f"❌ Startup error: {e}")
     yield
     # Shutdown
     print("🔄 Shutting down...")
 
 app.router.lifespan_context = lifespan
 
+# Root endpoint
+@app.get("/")
+async def root():
+    """Root endpoint"""
+    return {
+        "message": "Strategic Intelligence Dashboard API",
+        "version": "1.0.0",
+        "status": "running",
+        "timestamp": datetime.now().isoformat(),
+        "endpoints": {
+            "health": "/api/health",
+            "projects": "/api/projects",
+            "documents": "/api/documents",
+            "chat": "/api/chat/message"
+        }
+    }
+
 # Health check endpoint
 @app.get("/api/health")
 async def health_check():
     """Health check endpoint"""
-    return {
-        "status": "healthy",
-        "timestamp": datetime.now().isoformat(),
-        "version": "1.0.0",
-        "environment": "production",
-        "database": "connected" if fallback_db else "disconnected"
-    }
+    try:
+        port = os.getenv("PORT", "8000")
+        railway_env = os.getenv("RAILWAY_ENVIRONMENT", "local")
+        
+        return {
+            "status": "healthy",
+            "timestamp": datetime.now().isoformat(),
+            "version": "1.0.0",
+            "environment": "production",
+            "platform": "railway" if railway_env != "local" else "local",
+            "port": port,
+            "database": "connected" if fallback_db else "disconnected",
+            "message": "Strategic Intelligence Dashboard API is running"
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "timestamp": datetime.now().isoformat(),
+            "error": str(e),
+            "message": "Health check failed"
+        }
+
+# Alternative health check endpoints
+@app.get("/health")
+async def health_check_alt():
+    """Alternative health check endpoint"""
+    return await health_check()
+
+@app.get("/ping")
+async def ping():
+    """Simple ping endpoint"""
+    return {"status": "pong", "timestamp": datetime.now().isoformat()}
 
 # Projects API
 @app.get("/api/projects")
@@ -464,4 +516,18 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    print(f"🚀 Starting Strategic Intelligence Dashboard API on port {port}")
+    print(f"🌐 Environment: {os.getenv('RAILWAY_ENVIRONMENT', 'local')}")
+    print(f"🔧 Node Environment: {os.getenv('NODE_ENV', 'development')}")
+    
+    try:
+        uvicorn.run(
+            app, 
+            host="0.0.0.0", 
+            port=port,
+            log_level="info",
+            access_log=True
+        )
+    except Exception as e:
+        print(f"❌ Failed to start server: {e}")
+        raise
