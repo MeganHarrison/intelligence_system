@@ -24,6 +24,12 @@ ENV PYTHONPATH=/app
 # Expose port
 EXPOSE 8000
 
-# Change to python-backend directory and run the application
-WORKDIR /app/python-backend
-CMD ["uvicorn", "api_server:app", "--host", "0.0.0.0", "--port", "8000"]
+# Set working directory to project root
+WORKDIR /app
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PYTHONPATH=/app
+
+# Start the application
+CMD ["uvicorn", "python-backend.api_server:app", "--host", "0.0.0.0", "--port", "8000"]
