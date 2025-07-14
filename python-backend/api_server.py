@@ -540,7 +540,7 @@ app.add_middleware(
         "http://localhost:8051",  # Your current frontend port
         "http://127.0.0.1:3000",
         "http://127.0.0.1:8051",
-        "https://strategic-dashboard.vercel.app",  # Production (adjust as needed)
+        "https://alleato-frontend-agents.vercel.app",  # Production (adjust as needed)
     ],
     allow_credentials=True,
     allow_methods=["*"],
