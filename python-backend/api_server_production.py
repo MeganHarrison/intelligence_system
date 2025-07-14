@@ -100,6 +100,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "https://dashboard-frontend.vercel.app",
+        "https://alleato-frontend-agents.vercel.app/projects",
         "https://alleato-frontend-agents-git-main-meganharrisons-projects.vercel.app",
         "https://*.vercel.app",
         "https://*.netlify.app",
