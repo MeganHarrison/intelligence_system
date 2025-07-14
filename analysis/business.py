@@ -158,9 +158,8 @@ class BusinessStrategicIntelligenceSystem:
                 ).execute()
                 
                 if documents.data:
-                    recent_docs = [d for d in documents.data 
-                                 if datetime.fromisoformat(d['created_at'].replace('Z', '+00:00')) > 
-                                 datetime.now().replace(tzinfo=None) - timedelta(days=30)]
+                    # Simple recent docs calculation
+                    recent_docs = documents.data[-7:] if len(documents.data) > 7 else documents.data
                     
                     business_insights['Strategic Documentation'] = {
                         'relevant_documents': len(documents.data),

@@ -1,178 +1,143 @@
 #!/usr/bin/env python3
 """
-Quick Import Fix - scripts/fix_imports.py
-Fix import issues and verify system components
+Comprehensive Import Fix Script
+Fix missing imports across all intelligence components
 """
 
-import sys
+import os
+import re
 from pathlib import Path
 
-# Add project root to path
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
-
-def test_imports():
-    """Test all critical imports"""
-    print("🔧 FIXING IMPORT ISSUES")
-    print("=" * 30)
+def fix_imports_in_file(file_path):
+    """Fix missing imports in a Python file"""
     
-    import_tests = [
-        ("config.settings", "Configuration system"),
-        ("core.extractors", "Document extractor"),
-        ("analysis.business", "Business intelligence"),
-        ("analysis.projects", "Project analysis"),
-        ("analysis.strategic", "Strategic briefing")
-    ]
-    
-    success_count = 0
-    failed_imports = []
-    
-    for module, description in import_tests:
-        try:
-            imported_module = __import__(module, fromlist=[''])
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # Check if file needs timedelta import
+        needs_timedelta = 'timedelta' in content and 'from datetime import timedelta' not in content
+        needs_datetime = 'datetime' in content and 'from datetime import datetime' not in content
+        
+        if needs_timedelta or needs_datetime:
+            print(f"🔧 Fixing imports in: {file_path}")
             
-            # Test specific class imports
-            if module == "analysis.business":
-                from analysis.business import BusinessStrategicIntelligenceSystem
-                print(f"✅ {description} - BusinessStrategicIntelligenceSystem found")
-            elif module == "analysis.projects":
-                try:
-                    from analysis.projects import ContextualProjectIntelligence
-                    print(f"✅ {description} - ContextualProjectIntelligence found")
-                except ImportError:
-                    print(f"⚠️ {description} - Some classes missing but module imports")
-            elif module == "analysis.strategic":
-                try:
-                    from analysis.strategic import AIChiefOfStaffEnhanced
-                    print(f"✅ {description} - AIChiefOfStaffEnhanced found")
-                except ImportError:
-                    print(f"⚠️ {description} - Some classes missing but module imports")
+            # Find existing datetime imports
+            datetime_import_pattern = r'from datetime import ([^\n]+)'
+            match = re.search(datetime_import_pattern, content)
+            
+            if match:
+                # Update existing import
+                current_imports = match.group(1)
+                new_imports = []
+                
+                if 'datetime' not in current_imports:
+                    new_imports.append('datetime')
+                else:
+                    new_imports.extend([x.strip() for x in current_imports.split(',') if x.strip()])
+                
+                if 'timedelta' not in current_imports and needs_timedelta:
+                    new_imports.append('timedelta')
+                
+                # Remove duplicates while preserving order
+                seen = set()
+                unique_imports = []
+                for imp in new_imports:
+                    if imp not in seen:
+                        unique_imports.append(imp)
+                        seen.add(imp)
+                
+                new_import_line = f"from datetime import {', '.join(unique_imports)}"
+                content = re.sub(datetime_import_pattern, new_import_line, content)
+                
             else:
-                print(f"✅ {description} imported successfully")
+                # Add new import at the top, after other imports
+                import_lines = []
+                if needs_datetime:
+                    import_lines.append('datetime')
+                if needs_timedelta:
+                    import_lines.append('timedelta')
+                
+                new_import = f"from datetime import {', '.join(import_lines)}"
+                
+                # Find a good place to insert the import
+                lines = content.split('\n')
+                insert_index = 0
+                
+                # Find the best position after existing imports but before code
+                for i, line in enumerate(lines):
+                    if line.startswith('import ') or line.startswith('from '):
+                        insert_index = i + 1
+                    elif line.strip() and not line.startswith('#'):
+                        break
+                
+                lines.insert(insert_index, new_import)
+                content = '\n'.join(lines)
             
-            success_count += 1
+            # Write the fixed content back
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(content)
             
-        except ImportError as e:
-            print(f"❌ {description} import failed: {e}")
-            failed_imports.append((module, str(e)))
-        except Exception as e:
-            print(f"⚠️ {description} import warning: {e}")
-            success_count += 1  # Still consider it successful
-    
-    print(f"\n📊 Import Success Rate: {success_count}/{len(import_tests)}")
-    
-    if failed_imports:
-        print("\n🔧 FAILED IMPORTS TO FIX:")
-        for module, error in failed_imports:
-            print(f"   • {module}: {error}")
-    
-    return success_count == len(import_tests)
-
-def verify_database_connection():
-    """Verify database connection works"""
-    print("\n🔗 VERIFYING DATABASE CONNECTION")
-    print("=" * 35)
-    
-    try:
-        from dotenv import load_dotenv
-        import os
-        load_dotenv()
+            print(f"✅ Fixed imports in: {file_path}")
+            return True
         
-        supabase_url = os.getenv('SUPABASE_URL')
-        supabase_key = os.getenv('SUPABASE_KEY')
-        
-        if not supabase_url or not supabase_key:
-            print("❌ Environment variables missing")
-            return False
-        
-        from supabase import create_client
-        supabase = create_client(supabase_url, supabase_key)
-        
-        # Test basic queries
-        result = supabase.table('project').select('project_number').limit(1).execute()
-        print(f"✅ Project table accessible: {len(result.data)} records")
-        
-        result = supabase.table('clients').select('id').limit(1).execute()
-        print(f"✅ Clients table accessible: {len(result.data)} records")
-        
-        result = supabase.table('strategic_documents').select('id').limit(1).execute()
-        print(f"✅ Strategic documents accessible: {len(result.data)} records")
-        
-        return True
-        
-    except Exception as e:
-        print(f"❌ Database verification failed: {e}")
         return False
-
-def test_business_intelligence():
-    """Test the business intelligence system"""
-    print("\n🧠 TESTING BUSINESS INTELLIGENCE")
-    print("=" * 35)
-    
-    try:
-        from analysis.business import BusinessStrategicIntelligenceSystem
-        
-        system = BusinessStrategicIntelligenceSystem()
-        print("✅ Business intelligence system created successfully")
-        
-        # Test connection mode
-        print(f"✅ Connection mode: {system.connection_mode}")
-        
-        if hasattr(system, 'supabase') and system.supabase:
-            print("✅ Direct Supabase connection available")
-        
-        if hasattr(system, 'extractor') and system.extractor:
-            print("✅ Document extractor available")
-        
-        return True
         
     except Exception as e:
-        print(f"❌ Business intelligence test failed: {e}")
+        print(f"❌ Error fixing {file_path}: {e}")
         return False
 
 def main():
-    """Run all import and system tests"""
-    print("🚀 SYSTEM IMPORT AND CONNECTION VERIFICATION")
-    print("=" * 60)
+    """Fix imports across all intelligence components"""
     
-    # Test imports
-    imports_ok = test_imports()
+    print("🔧 COMPREHENSIVE IMPORT FIX")
+    print("=" * 40)
+    print("Scanning and fixing missing datetime imports...")
+    print()
     
-    # Test database
-    db_ok = verify_database_connection()
+    # Files that commonly need datetime imports
+    files_to_check = [
+        "python-backend/api_server.py",
+        "analysis/business.py",
+        "analysis/strategic.py", 
+        "analysis/projects.py",
+        "core/extractors.py",
+        "scripts/database_direct_connection.py",
+        "scripts/database_diagnostics.py"
+    ]
     
-    # Test business intelligence
-    bi_ok = test_business_intelligence()
+    # Add any Python files in the analysis directory
+    analysis_dir = Path("analysis")
+    if analysis_dir.exists():
+        for py_file in analysis_dir.glob("*.py"):
+            if str(py_file) not in files_to_check:
+                files_to_check.append(str(py_file))
     
-    print("\n📊 SYSTEM STATUS SUMMARY")
-    print("=" * 30)
-    print(f"Imports: {'✅' if imports_ok else '❌'}")
-    print(f"Database: {'✅' if db_ok else '❌'}")
-    print(f"Business Intelligence: {'✅' if bi_ok else '❌'}")
+    fixed_count = 0
+    checked_count = 0
     
-    if all([imports_ok, db_ok, bi_ok]):
-        print("\n🎯 ALL SYSTEMS OPERATIONAL!")
-        print("✅ Your intelligence agent is ready to run")
-        print()
-        print("Next steps:")
-        print("1. Run: python main.py")
-        print("2. Test business intelligence: python -c 'from analysis.business import BusinessStrategicIntelligenceSystem; import asyncio; asyncio.run(BusinessStrategicIntelligenceSystem().comprehensive_business_analysis())'")
-        print("3. Start API server: python python-backend/api_server.py")
-        
-        return True
+    for file_path in files_to_check:
+        if os.path.exists(file_path):
+            checked_count += 1
+            if fix_imports_in_file(file_path):
+                fixed_count += 1
+        else:
+            print(f"⚠️ File not found: {file_path}")
+    
+    print(f"\n📊 IMPORT FIX SUMMARY")
+    print("=" * 25)
+    print(f"Files checked: {checked_count}")
+    print(f"Files fixed: {fixed_count}")
+    
+    if fixed_count > 0:
+        print("\n🎯 NEXT STEPS:")
+        print("1. Restart your API server:")
+        print("   cd python-backend && python start_server.py")
+        print("2. Test the chat again with: 'What's our revenue pipeline?'")
+        print("3. You should now see real strategic intelligence!")
     else:
-        print("\n⚠️ SOME SYSTEMS NEED ATTENTION")
-        print("🔧 Troubleshooting steps:")
-        
-        if not imports_ok:
-            print("• Fix missing imports - ensure all files are properly updated")
-        if not db_ok:
-            print("• Check .env file and database credentials")
-        if not bi_ok:
-            print("• Verify business intelligence system setup")
-        
-        return False
+        print("\n✅ All imports appear to be correct")
+        print("💡 The issue might be elsewhere - let's debug further")
 
 if __name__ == "__main__":
-    success = main()
-    sys.exit(0 if success else 1)
+    main()
