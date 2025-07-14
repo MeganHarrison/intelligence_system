@@ -70,10 +70,15 @@ export default function ChatPage() {
 
       const data = await response.json();
 
-      // Add AI response
+      // Add AI response with mode information
+      let responseContent = data.response;
+      if (data.mode && data.mode !== 'ai_chief') {
+        responseContent = `[${data.mode.toUpperCase()}] ${data.response}`;
+      }
+
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: data.response,
+        content: responseContent,
         isUser: false,
         timestamp: new Date()
       };
